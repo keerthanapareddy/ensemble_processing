@@ -18,8 +18,9 @@ class Circle {
     pushMatrix(); //draw ellipse      
     translate(translateX, translateY);
     noStroke();
+    //ellipseMode(CENTER);
     fill(r, g, b, 100);
-    ellipse(0, 0, circleSize, circleSize);
+    ellipse(0, 0, cellSize, cellSize);
     popMatrix();
   }
 }

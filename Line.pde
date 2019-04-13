@@ -1,15 +1,15 @@
 class Line {
 
-  float xPos1;
-  float yPos1;
-  float xPos2;
-  float yPos2;
-  float velocity;
+  int xPos1;
+  int yPos1;
+  int xPos2;
+  int yPos2;
+  int velocity;
   float mass;
   color c;
 
 
-  Line( float tempXPos1, float tempYPos1, float tempXPos2, float tempYPos2, float tempVelocity, color tempColor) {
+  Line( int tempXPos1, int tempYPos1, int tempXPos2, int tempYPos2, int tempVelocity, color tempColor) {
     xPos1 = tempXPos1;
     yPos1 = tempYPos1;
     xPos2 = tempXPos2;
@@ -100,7 +100,7 @@ class Line {
     yPos2 =height;
   }
   
-  void setVelocity(float v){
+  void setVelocity(int v){
     velocity = v;
     //velocity = constrain(0, );
   }

@@ -9,7 +9,7 @@ int cellSize;
 float circleSize = 6;
 float rightVelocityConstrained, leftVelocityConstrained, topVelocityConstrained, bottomVelocityConstrained;
 
-float initialLineVelocity;
+int initialLineVelocity;
 
 int springDisplacement=70 ;
 
@@ -28,7 +28,8 @@ int lineNumber = 0;//initially nothing has moved
 int cols, rows;
 int x0, x1, y0, y1 = 0;
 
-float xLeft, xRight, yTop, yBottom;
+int xLeft, xRight, yTop, yBottom;
+int xLeftFinal, xRightFinal, yTopFinal, yBottomFinal;
 
 Line lineLeft;
 Line lineRight;
@@ -83,85 +84,63 @@ void setup() {
 }
 
 void draw() {
-  background(255, 255, 255);
-  initialLineVelocity = map(springDisplacement, 0, 140, 0, 42.85);
+  //background(255, 255, 255);
+  initialLineVelocity = (int)map(springDisplacement, 0, 140, 0, 42);
   constrainVelocities();
-  //springLength = 50;
 
-  //if (lineNumber == 4 && (rightVelocityConstrained == 0 || leftVelocityConstrained == 0 || topVelocityConstrained == 0 || bottomVelocityConstrained == 0)) {
-  //  //println("entering");
-  //  lineNumber = 0;
-  //  resetLines();
-  //}
+  if (lineBottom.velocity == 0) 
+    lineBottom.display();
+  if (lineLeft.velocity == 0)
+    lineLeft.display();
+  if (lineTop.velocity == 0)
+    lineTop.display();
+  if (lineRight.velocity == 0)
+    lineRight.display();
 
-  drawCircles();
-
-  lineBottom.display();
-  lineLeft.display();
-  lineTop.display();
-  lineRight.display();
   moveLines();
 
-  delay(10);
-}
+  if (keypressed == 5) {
+    drawCircles(yTopFinal, yBottomFinal, xRightFinal, xLeftFinal);
 
-void moveLines() {
-  //when neo pixels change color decide which line is moving
-  if (keypressed == 1) {
-    lineBottom.moveUp();
-  } else if (keypressed == 2) {
-    lineLeft.moveRight();
-  } else if (keypressed == 3) {
-    lineTop.moveDown();
-  } else if (keypressed == 4) {
-    lineRight.moveLeft();
-  } else {
+    //resetLines();
   }
-}
 
+  //delay(10);
+}
 
 //drawing circles
-void drawCircles() {
+void drawCircles(int topY, int bottomY, int rightX, int leftX) {
 
   img.loadPixels();
-  int cols = img.width/cellSize;  // Number of columns
-  int rows = img.height/cellSize;   // Number of rows
+
   //println(cols + " " + rows);
 
-  for (int i=0; i<cols; i++) {
-    for (int j=0; j<rows; j++) {
+  for (int i=0; i<rows; i++) {
+    for (int j=0; j<cols; j++) {
 
       int x = i*cellSize;
       int y = j*cellSize;
-      int loc = x + y*img.width; //standard formula to determine location of a pixel in the array
-      int locCircles = i + j*cols; //array for number of circles is different from the pixel array
+      int pixelLoc = x + y*img.width; //standard formula to determine location of a pixel in the array
+      int circleLocation = i + j*cols; //array for number of circles is different from the pixel array
 
       float r = 255;
       float g = 255;
       float b = 255;
-
-      //if (isCirclePresent[locCircles] == false) { //if circles are not present at that location, only then draw
-      //*** calculate column number of the line
-
-      //add condition "&& the last player has played"
-
-      if (lineNumber == 4 &&  rightVelocityConstrained == 0) {
-        lineNumber = 0;
-        resetLines();
-        //if ((i > lineLeft.xPos1 && i < lineRight.xPos1 && j > lineTop.yPos1 && j < lineBottom.yPos2) || isCirclePresent[locCircles] == true) { //== true saves the previous drawn square
-          if ((i > 40 && i < 150 && j > 100 && j < 150) || isCirclePresent[locCircles] == true) {
-          println("i am drawing bro");
-          r = red(img.pixels[loc]); //looking up rgb values of the image
-          g = green(img.pixels[loc]);
-          b = blue(img.pixels[loc]);
-          isCirclePresent[locCircles] = true;
-        }
-        pixelCircle = new Circle(r, g, b, x+cellSize/2, y+cellSize/2);
-        pixelCircle.display();
+      //println("leftX:" + leftX+ " right x"+ rightX +  " topY"+ topY + "bottom Y" + bottomY);
+      if ((x >= leftX && x < rightX && y>= topY && y < bottomY) || isCirclePresent[circleLocation] == true) {
+        //println("i am drawing bro");
+        r = red(img.pixels[pixelLoc]); //looking up rgb values of the image
+        g = green(img.pixels[pixelLoc]);
+        b = blue(img.pixels[pixelLoc]);
+        isCirclePresent[circleLocation] = true;
       }
+      pixelCircle = new Circle(r, g, b, x+cellSize/2, y+cellSize/2);
+      pixelCircle.display();
     }
   }
 }
+//}
+
 
 void resetLines() {
   lineLeft.resetLeft();
@@ -177,53 +156,62 @@ void constrainVelocities() {
   bottomVelocityConstrained = constrain(lineBottom.velocity, 0, 42.85);
 }
 
+
+
+void moveLines() {
+  //when neo pixels change color decide which line is moving
+  if (keypressed == 1) {
+
+    lineBottom.moveUp();
+    if (lineBottom.velocity == 0) {
+      yBottomFinal = lineBottom.yPos1;
+      // println(yBottomFinal);
+    }
+  } 
+  if (keypressed == 2) {
+    lineLeft.moveRight();
+
+    if (lineLeft.velocity == 0) {
+      xLeftFinal = lineLeft.xPos2;
+    }
+  } 
+  if (keypressed == 3) {
+    lineTop.moveDown();
+
+    if (lineTop.velocity == 0) {
+
+      yTopFinal = lineTop.yPos2;
+    }
+  } 
+  if (keypressed == 4) {
+
+    lineRight.moveLeft();
+
+    if (lineRight.velocity == 0) {
+
+      xRightFinal = lineRight.xPos2;
+    }
+  } else {
+  }
+}
+
 //key presses
 void keyPressed() {
   switch(key) {
   case '1':
-    x0 = 77; 
-    x1 = 115;
-    y0 = 37;
-    y1 = 125;
-    drawCircles();
+    keypressed = 5;
+    resetLines();
     //resetAllLines();
-    break;
-
-  case '2':
-    x0 = 40;
-    x1 = 60;
-    y0 = 40;
-    y1 = 60;
-    drawCircles();
-    //resetAllLines();
-    break;
-
-  case '3':
-    x0 = 60;
-    x1 = 80;
-    y0 = 40;
-    y1 = 60;
-    drawCircles();
-    //resetAllLines();
-    break;
-
-  case '4':
-    x0 = 0;
-    x1 = width;
-    y0 = 0;
-    y1 = height;
-    drawCircles();
     break;
   }
 
   //setting the initial velocity each time
   if (key == 'q') {
+
     keypressed = 1;
     lineBottom.setVelocity(initialLineVelocity);
     lineNumber++;
-    return lineBottom.yPos1;
   }  
-
   if (key == 'w') {
     keypressed = 2;
     lineLeft.setVelocity(initialLineVelocity);
@@ -235,8 +223,11 @@ void keyPressed() {
     lineNumber++;
   } 
   if (key == 'r') {
+
     keypressed = 4;
+
     lineRight.setVelocity(initialLineVelocity);
+    //println(lineRight.velocity);
     lineNumber++;
   }
 }
