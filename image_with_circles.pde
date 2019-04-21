@@ -1,6 +1,6 @@
 import processing.serial.*;
 
-//Serial myPort;
+Serial myPort;
 
 PImage img; // Declare a variable of type PImage
 //int circleSize = 5; //size of the circles
@@ -11,7 +11,7 @@ float rightVelocityConstrained, leftVelocityConstrained, topVelocityConstrained,
 
 int initialLineVelocity;
 
-int springDisplacement=70 ;
+int springDisplacement;
 
 int inByte; //value from arduino with initial value as rest position
 
@@ -43,8 +43,8 @@ void setup() {
   //fullScreen();
   size(900, 900);
 
-  //String portName = "/dev/cu.usbmodem1411";
-  //myPort = new Serial(this, portName, 9600);
+  String portName = "/dev/cu.usbmodem1421";
+  myPort = new Serial(this, portName, 9600);
 
   img = loadImage("minion.jpg");  // Make a new instance of a PImage by loading an image file
   background(255);
@@ -85,7 +85,7 @@ void setup() {
 
 void draw() {
   //background(255, 255, 255);
-  initialLineVelocity = (int)map(springDisplacement, 0, 140, 0, 42);
+  initialLineVelocity = (int)map(inByte, 42, 103, 1, 42);
   constrainVelocities();
 
   if (lineBottom.velocity == 0) 
@@ -97,24 +97,18 @@ void draw() {
   if (lineRight.velocity == 0)
     lineRight.display();
 
-  moveLines();
+  //moveLines();
 
   if (keypressed == 5) {
     drawCircles(yTopFinal, yBottomFinal, xRightFinal, xLeftFinal);
-
-    //resetLines();
   }
 
-  //delay(10);
+  delay(10);
 }
 
 //drawing circles
 void drawCircles(int topY, int bottomY, int rightX, int leftX) {
-
   img.loadPixels();
-
-  //println(cols + " " + rows);
-
   for (int i=0; i<rows; i++) {
     for (int j=0; j<cols; j++) {
 
@@ -169,6 +163,7 @@ void moveLines() {
     }
   } 
   if (keypressed == 2) {
+    lineLeft.setVelocity(initialLineVelocity);
     lineLeft.moveRight();
 
     if (lineLeft.velocity == 0) {
@@ -213,9 +208,9 @@ void keyPressed() {
     lineNumber++;
   }  
   if (key == 'w') {
-    keypressed = 2;
-    lineLeft.setVelocity(initialLineVelocity);
-    lineNumber++;
+    //keypressed = 2;
+    //lineLeft.setVelocity(initialLineVelocity);
+    //lineNumber++;
   } 
   if (key == 'e') {
     keypressed = 3;
@@ -232,16 +227,19 @@ void keyPressed() {
   }
 }
 
-/*
+
 void serialEvent (Serial myPort) {
- // get the byte:
- while (myPort.available()>0) {
- inByte = myPort.read();
- springDisplacement = (inByte-2)*10;
- //println(springDisplacement*10);
- }
- }
- */
+  // get the byte:
+  while (myPort.available()>0) {
+    inByte = myPort.read();
+    //println("serial");
+    println(inByte);
+    keypressed = 2;
+    moveLines();
+  }
+ 
+}
+
 
 
 /*
