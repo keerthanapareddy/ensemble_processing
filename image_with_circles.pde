@@ -2,6 +2,7 @@ import processing.serial.*;
 
 Serial myPort;
 
+
 PImage img; // Declare a variable of type PImage
 //int circleSize = 5; //size of the circles
 int cellSize;
@@ -9,9 +10,9 @@ int cellSize;
 float circleSize = 6;
 float rightVelocityConstrained, leftVelocityConstrained, topVelocityConstrained, bottomVelocityConstrained;
 
-int initialLineVelocity;
+float initialLineVelocity;
 
-int springDisplacement;
+//int springDisplacement = (int)random(0, 140) ;
 
 int inByte; //value from arduino with initial value as rest position
 
@@ -19,29 +20,27 @@ boolean isCirclePresent[];
 
 boolean velocityIsZero = false;
 
-int keypressed;
+int lineNumber = 0;
 
 int loc;
-
-int lineNumber = 0;//initially nothing has moved
 
 int cols, rows;
 int x0, x1, y0, y1 = 0;
 
-int xLeft, xRight, yTop, yBottom;
-int xLeftFinal, xRightFinal, yTopFinal, yBottomFinal;
+float xLeft, xRight, yTop, yBottom;
+float xLeftFinal, xRightFinal, yTopFinal, yBottomFinal;
 
 Line lineLeft;
 Line lineRight;
 Line lineTop;
 Line lineBottom;
-
+int lineCounter=1;
 Circle pixelCircle;
 
 
 void setup() {
   //fullScreen();
-  size(900, 900);
+  size(1000, 1000);
 
   String portName = "/dev/cu.usbmodem1421";
   myPort = new Serial(this, portName, 9600);
@@ -70,10 +69,10 @@ void setup() {
 
   colorMode(RGB, 100);
 
-  yBottom = height;
-  xRight = width;
-  yTop = 0; 
-  xLeft = 0;
+  yBottom = height-10;
+  xRight = width-10;
+  yTop = 10; 
+  xLeft = 10;
 
 
   //initialLineVelocity = map(springDisplacement, 20, 160, 0, 42.85); //20 ~ the distance it travels 
@@ -85,9 +84,19 @@ void setup() {
 
 void draw() {
   //background(255, 255, 255);
-  initialLineVelocity = (int)map(inByte, 42, 103, 1, 42);
   constrainVelocities();
+  displayLines();
+  moveLines();
+  
+  if (lineNumber == 4 && lineRight.velocity == 0 ) {
+    drawCircles(yTopFinal, yBottomFinal, xRightFinal, xLeftFinal);
+    resetLines();
+  }
+  
+  delay(10);
+}
 
+void displayLines() {
   if (lineBottom.velocity == 0) 
     lineBottom.display();
   if (lineLeft.velocity == 0)
@@ -96,18 +105,10 @@ void draw() {
     lineTop.display();
   if (lineRight.velocity == 0)
     lineRight.display();
-
-  //moveLines();
-
-  if (keypressed == 5) {
-    drawCircles(yTopFinal, yBottomFinal, xRightFinal, xLeftFinal);
-  }
-
-  delay(10);
 }
 
 //drawing circles
-void drawCircles(int topY, int bottomY, int rightX, int leftX) {
+void drawCircles(float topY, float bottomY, float rightX, float leftX) {
   img.loadPixels();
   for (int i=0; i<rows; i++) {
     for (int j=0; j<cols; j++) {
@@ -135,7 +136,6 @@ void drawCircles(int topY, int bottomY, int rightX, int leftX) {
 }
 //}
 
-
 void resetLines() {
   lineLeft.resetLeft();
   lineRight.resetRight();
@@ -144,106 +144,94 @@ void resetLines() {
 }
 
 void constrainVelocities() {
-  rightVelocityConstrained = constrain(lineRight.velocity, 0, 42.85);
-  leftVelocityConstrained = constrain(lineLeft.velocity, 0, 42.85);
-  topVelocityConstrained = constrain(lineTop.velocity, 0, 42.85);
-  bottomVelocityConstrained = constrain(lineBottom.velocity, 0, 42.85);
+  rightVelocityConstrained = constrain(lineRight.velocity, 0, 45);
+  leftVelocityConstrained = constrain(lineLeft.velocity, 0, 45);
+  topVelocityConstrained = constrain(lineTop.velocity, 0, 45);
+  bottomVelocityConstrained = constrain(lineBottom.velocity, 0, 45);
 }
-
 
 
 void moveLines() {
   //when neo pixels change color decide which line is moving
-  if (keypressed == 1) {
-
+  if (lineNumber == 1) {
     lineBottom.moveUp();
     if (lineBottom.velocity == 0) {
       yBottomFinal = lineBottom.yPos1;
       // println(yBottomFinal);
     }
   } 
-  if (keypressed == 2) {
-    lineLeft.setVelocity(initialLineVelocity);
-    lineLeft.moveRight();
 
+  if (lineNumber == 2) {
+    //println(lineLeft.velocity);
+    lineLeft.moveRight();
     if (lineLeft.velocity == 0) {
       xLeftFinal = lineLeft.xPos2;
     }
   } 
-  if (keypressed == 3) {
+
+  if (lineNumber == 3) {
     lineTop.moveDown();
-
     if (lineTop.velocity == 0) {
-
       yTopFinal = lineTop.yPos2;
     }
   } 
-  if (keypressed == 4) {
-
+  
+  if (lineNumber == 4) {
     lineRight.moveLeft();
-
     if (lineRight.velocity == 0) {
-
       xRightFinal = lineRight.xPos2;
     }
   } else {
   }
 }
 
-//key presses
-void keyPressed() {
-  switch(key) {
-  case '1':
-    keypressed = 5;
-    resetLines();
-    //resetAllLines();
-    break;
+
+void triggerLineMove() {
+  print("initialLineVelocity:"); 
+  println(initialLineVelocity);
+  if (lineNumber == 1) {
+    lineBottom.setVelocity(initialLineVelocity);
   }
 
-  //setting the initial velocity each time
-  if (key == 'q') {
+  if (lineNumber == 2) {
+    lineLeft.setVelocity(initialLineVelocity);
+  }
 
-    keypressed = 1;
-    lineBottom.setVelocity(initialLineVelocity);
-    lineNumber++;
-  }  
-  if (key == 'w') {
-    //keypressed = 2;
-    //lineLeft.setVelocity(initialLineVelocity);
-    //lineNumber++;
-  } 
-  if (key == 'e') {
-    keypressed = 3;
+  if (lineNumber == 3) {
     lineTop.setVelocity(initialLineVelocity);
-    lineNumber++;
-  } 
-  if (key == 'r') {
+  }
 
-    keypressed = 4;
-
+  if (lineNumber == 4) {
     lineRight.setVelocity(initialLineVelocity);
-    //println(lineRight.velocity);
-    lineNumber++;
+  }
+  if(lineNumber > 4){
+    lineNumber = 0;
   }
 }
 
 
 void serialEvent (Serial myPort) {
-  // get the byte:
+
   while (myPort.available()>0) {
     inByte = myPort.read();
-    //println("serial");
-    println(inByte);
-    keypressed = 2;
-    moveLines();
+    //print("inByte:");
+    //println(inByte);
+    lineNumber++; 
+    print("Line Number:"); 
+    println(lineNumber);
+    initialLineVelocity = map(inByte, 42, 103, 0, 45);
+    triggerLineMove() ;
   }
- 
 }
 
 
-
-/*
-Fixes
- 1. add condition "&& the last player has played" before circles are drawn: linenmber reaches 4 and velocity is 0
- 2. When one line is moving, the other one cannot
- */
+////key presses
+//void keyPressed() {
+//  switch(key) {
+//  case '1':
+//    lineNumber = 5;
+//    resetLines();
+//    //resetAllLines();
+//    break;
+//  }
+//}
